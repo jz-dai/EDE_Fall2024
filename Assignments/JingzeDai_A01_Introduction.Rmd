@@ -22,22 +22,22 @@ Enter answers to the questions just below the >Answer: prompt.
 
 1. What are your previous experiences with data analytics, R, and Git? Include both formal and informal training.
 
-> Answer: I learned how to analyze datasets using R in my statistics course during undergrad. Some of the analyzing tricks included simple regression, 
+> Answer: I learned how to analyze datasets using R in my statistics course during undergrad. Some of the analyzing tricks included simple regression, logistics regression, ANOVA test, multivariable regression and PCA analysis. I also self-learned a little bit about machine learning using python and joined some introductory kaggle competition before. I never tried Git before.
 
 2. Are there any components of the course about which you feel confident?
 
-> Answer: 
+> Answer: I know the difference among various types of regressions. 
 
 3. Are there any components of the course about which you feel apprehensive?
 
-> Answer: 
+> Answer: I still rely on google/ lecture notes to write codes in R, I find it quite difficult to memorize all those commands...
 
 
 ## 2) GitHub
 
 Provide a link below to your forked course repository in GitHub. Make sure you have pulled all recent changes from the course repository and that you have updated your course README file, committed those changes, and pushed them to your GitHub account. 
 
-> Answer: 
+> Answer: https://github.com/jz-dai/EDE_Fall2024/
 
 ## 3) Knitting
 When you have completed this document, click the `knit` button.This should produce a PDF copy of your markdown document. Submit this PDF to Canvas 
