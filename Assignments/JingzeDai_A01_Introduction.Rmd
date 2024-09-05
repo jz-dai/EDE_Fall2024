@@ -1,5 +1,5 @@
 ---
-title: "JingzeDai_A01_Introduction"
+title: "Assignment 1: Introduction"
 author: "Jingze Dai"
 output: pdf_document
 ---
