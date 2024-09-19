@@ -76,7 +76,7 @@ library(tidyverse)
 
 Question: What happens in the console when you load a package?
 
-> Answer: 
+> Answer: It loads the packages
 
 ---
 

@@ -3,6 +3,8 @@ title: "Lab 3b - Workspaces, Dates, and Factors"
 author: "Environmental Data Analytics | John Fay and Luana Lima "
 date: "Fall 2024"
 output: pdf_document
+editor_options: 
+  chunk_output_type: inline
 ---
 
 ## Objectives
@@ -11,6 +13,9 @@ output: pdf_document
 3.    Discuss `stringsAsFactors = TRUE` and what "factors" are
 
 ---
+```{r}
+rm(list=ls())
+```
 
 ## 1. Working with Working directories: 
 
@@ -78,9 +83,18 @@ print(filenames)
 ```{r here in action}
 
 # 1. Read the 'NTL-LTER_Lake_ChemistryPhysics_Raw.csv' into a dataframe
+lake_chem <- here('Data','Raw','NTL-LTER_Lake_ChemistryPhysics_Raw.csv')
+print(lake_chem)
 
+file.exists(lake_chem)
+
+lake_chem_data <- read.csv(
+  file = lake_chem,
+  stringsAsFactors = T
+)
 
 # 2.
+
 
 
 ```
@@ -133,8 +147,8 @@ date_obj_today
 #Ex_3 - on your own...
 str_juneteenth <- "19 June 1865"
 #Since the format is month-day-year we will use function mdy()
-#date_juneteenth <- ()
-#date_juneteenth
+date_juneteenth <- dmy(str_juneteenth)
+date_juneteenth
 ```
 ### The century issue
 
@@ -289,7 +303,8 @@ We can reorder levels simply by overwriting existing levels.
 
 #Reorder by overwriting the column with the existing values 
 # assigned with a new order of levels
-sites$dow <- factor(sites$dow, levels=c("1","2","3","4","5","6","7")) #Or... as.character(seq(1,7))
+sites$dow <- factor(sites$dow, levels=c("1","2","3","4","5","6","7")) 
+#Or... as.character(seq(1,7))
 
 #See that the levels are updated
 levels(sites$dow)
@@ -337,10 +352,15 @@ usgs_flow_data$datetime = mdy(usgs_flow_data$datetime)
 usgs_flow_data$month <- month(usgs_flow_data$datetime)
 
 #Convert to a factor, with labels and levels
-
+usgs_flow_data$month <- factor(usgs_flow_data$month,
+                               levels=as.character(seq(1,12)),
+                               labels=c("Jan","Feb","Mar","Apr","May","Jun",
+                                        "Jul","Aug","Sep","Oct","Nov","Dec"))
 
 #Plot
-
+ggplot(usgs_flow_data,aes(x=month)) +
+  geom_bar() + 
+  scale_x_discrete(drop=FALSE)
 
 ```
 
