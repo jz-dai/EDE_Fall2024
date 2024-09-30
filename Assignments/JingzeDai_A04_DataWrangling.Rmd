@@ -30,19 +30,48 @@ This exercise accompanies the lessons in Environmental Data Analytics on Data Wr
 2. Add the appropriate code to reveal the dimensions of the four datasets. 
 
 ```{r setup, message = FALSE}
-#1a 
+#1a loading libraries
+
+library(tidyverse)
+library(lubridate)
+library(here)
 
 #1b 
 
-#1c 
+# checking the working directory
+getwd()
+# checking the top-level directory
+here()
+
+#1c importing datasets
+
+# Ozone 2018 data
+o3_2018 <- read.csv(file=here("Data/Raw/EPAair_O3_NC2018_raw.csv"),
+                      stringsAsFactors = TRUE)
+
+# Ozone 2019 data
+o3_2019 <- read.csv(file=here("Data/Raw/EPAair_O3_NC2019_raw.csv"),
+                      stringsAsFactors = TRUE)
+
+# PM2.5 2018 data
+pm25_2018 <- read.csv(file=here("Data/Raw/EPAair_PM25_NC2018_raw.csv"),
+                        stringsAsFactors = TRUE)
+
+# PM2.5 2019 data
+pm25_2019 <- read.csv(file=here("Data/Raw/EPAair_PM25_NC2019_raw.csv"),
+                        stringsAsFactors = TRUE)
 
 #2 
 
-
+# revealing dimensions of the datasets
+dim(o3_2018)
+dim(o3_2019)
+dim(pm25_2018)
+dim(pm25_2019)
 ```
 
 >All four datasets should have the same number of columns but unique record counts (rows). Do your datasets follow this pattern?
-
+Yes, they all have 20 columns but different rows. O3 in 2018, O3 in 2019, PM2.5 in 2018 and PM2.5 in 2019 have 9737, 10592, 8983 and 8581 rows, respectively.
 
 ## Wrangle individual datasets to create processed files.
 
@@ -56,7 +85,7 @@ This exercise accompanies the lessons in Environmental Data Analytics on Data Wr
 
 ```{r questions 3 thru 4}
 #3
-
+summary(o3_2018)
 
 #4
 
