@@ -84,17 +84,48 @@ Yes, they all have 20 columns but different rows. O3 in 2018, O3 in 2019, PM2.5 
 6. Save all four processed datasets in the Processed folder. Use the same file names as the raw files but replace "raw" with "processed".
 
 ```{r questions 3 thru 4}
-#3
-summary(o3_2018)
+#3 changing date columns from factors to dates using mdy function
+o3_2018$Date <- mdy(o3_2018$Date)
+o3_2019$Date <- mdy(o3_2019$Date)
+pm25_2018$Date <- mdy(pm25_2018$Date)
+pm25_2019$Date <- mdy(pm25_2019$Date)
 
-#4
+#4 selecting the targeted columns
 
+selected_o3_2018 <- o3_2018 %>%
+  select(Date, DAILY_AQI_VALUE, Site.Name, AQS_PARAMETER_DESC, COUNTY, 
+         SITE_LATITUDE, SITE_LONGITUDE)
 
-#5
+selected_o3_2019 <- o3_2019 %>%
+  select(Date, DAILY_AQI_VALUE, Site.Name, AQS_PARAMETER_DESC, COUNTY, 
+         SITE_LATITUDE, SITE_LONGITUDE)
 
+selected_pm25_2018 <- pm25_2018 %>%
+  select(Date, DAILY_AQI_VALUE, Site.Name, AQS_PARAMETER_DESC, COUNTY, 
+         SITE_LATITUDE, SITE_LONGITUDE)
 
-#6
+selected_pm25_2019 <- pm25_2019 %>%
+  select(Date, DAILY_AQI_VALUE, Site.Name, AQS_PARAMETER_DESC, COUNTY, 
+         SITE_LATITUDE, SITE_LONGITUDE)
 
+#5 filling AQS_parameter_desc with PM2.5 for those dataframes
+
+selected_pm25_2018 <- selected_pm25_2018 %>%
+  mutate(AQS_PARAMETER_DESC = "PM2.5")
+
+selected_pm25_2019 <- selected_pm25_2019 %>%
+  mutate(AQS_PARAMETER_DESC = "PM2.5")
+
+#6 saving dataframes as 'processed'
+
+write.csv(selected_o3_2018, row.names = FALSE, 
+          file = "./Data/Processed/EPAair_O3_NC2018_processed.csv")
+write.csv(selected_o3_2019, row.names = FALSE, 
+          file = "./Data/Processed/EPAair_O3_NC2019_processed.csv")
+write.csv(selected_pm25_2018, row.names = FALSE, 
+          file = "./Data/Processed/EPAair_PM25_NC2018_processed.csv")
+write.csv(selected_pm25_2019, row.names = FALSE, 
+          file = "./Data/Processed/EPAair_PM25_NC2019_processed.csv")
 ```
 
 
@@ -126,21 +157,70 @@ summary(o3_2018)
 11. Save your processed dataset with the following file name: "EPAair_O3_PM25_NC1819_Processed.csv"
 
 ```{r questions 7 thru 11}
-#7 
+#7 combining datasets
+
+# making sure the column names are identical
+colnames(selected_o3_2018)
+colnames(selected_o3_2019)
+colnames(selected_pm25_2018)
+colnames(selected_pm25_2019)
+
+# column names are the same, using rbind to combine datasets
+EPAair_data <- rbind(selected_o3_2018, selected_o3_2019, 
+                     selected_pm25_2018, selected_pm25_2019)
+
+# checking the summary of combined data
+summary(EPAair_data)
+# we can confirm that there are 20329 rows for ozone (10592 + 9737)
+# there are 17564 rows for PM2.5 (8983 + 8581)
+
+#8 wrangling the combined dataset
+
+# creating the list of sites to filter instead of using intersect function
+sites <- c("Linville Falls", "Durham Armory", "Leggett", 
+                      "Hattie Avenue", "Clemmons Middle", "Mendenhall School", 
+                      "Frying Pan Mountain", "West Johnston Co.", 
+                      "Garinger High School", "Castle Hayne", 
+                      "Pitt Agri. Center", "Bryson City", "Millbrook School")
+
+# creating pipe function
+EPAair_processed <- EPAair_data %>%
+  # selecting 'Site.Name' that appears in the list
+  filter(Site.Name %in% sites) %>%
+  
+  # grouping by 'Date' 'Site.Name' 'AQS_PARAMETER_DESC' 'COUNTY'
+  group_by(Date, Site.Name, AQS_PARAMETER_DESC, COUNTY) %>%
+  
+  # calculating the mean of 'DAILY_AQI_VALUE' 'SITE_LATITUDE' 'SITE_LONGITUDE'
+  summarise(
+    DAILY_AQI_VALUE = mean(DAILY_AQI_VALUE),
+    SITE_LATITUDE = mean(SITE_LATITUDE),
+    SITE_LONGITUDE = mean(SITE_LONGITUDE)) %>%
+  
+  # adding month and year columns
+  mutate(
+    Month = month(Date),
+    Year = year(Date))
+
+# we can confirm that the dimension of the dataset is indeed 14,752 x 9
+dim(EPAair_processed)
 
 
-#8 
+#9 spreading the dataset using pivot_wider function
 
+EPAair_processed <- EPAair_processed %>% 
+  pivot_wider(
+    names_from = AQS_PARAMETER_DESC, 
+    values_from = DAILY_AQI_VALUE)
 
-#9
+#10 calling dimensions of new dataset
 
+dim(EPAair_processed)
 
-#10
+#11 exporting as processed data
 
-
-#11
-
-
+write.csv(EPAair_processed, row.names = FALSE, 
+          file = "./Data/Processed/EPAair_O3_PM25_NC1819_Processed.csv")
 ```
 
 
@@ -151,17 +231,41 @@ summary(o3_2018)
 13. Call up the dimensions of the summary dataset.
 
 ```{r questions 12 and 13}
-
 #12
 
+summaries_data <- EPAair_processed %>%
+  # grouping by 'Site.Name' 'Month' 'Year'
+  group_by(Site.Name, Month, Year) %>%
+  
+  # calculating mean AQI values
+  summarise(
+    mean_Ozone_AQI = mean(Ozone),
+    mean_PM2.5_AQI = mean(PM2.5)) %>%
+
+  drop_na(mean_Ozone_AQI)
 
 #13
 
-
+dim(summaries_data)
 
 ```
 
 14. Why did we use the function `drop_na` rather than `na.omit`? Hint: replace `drop_na` with `na.omit` in part 12 and observe what happens with the dimensions of the summary date frame.
 
-> Answer: 
+```{r}
+summaries_2 <- EPAair_processed %>%
+  # grouping by 'Site.Name' 'Month' 'Year'
+  group_by(Site.Name, Month, Year) %>%
+  
+  # calculating mean AQI values
+  summarise(
+    mean_Ozone_AQI = mean(Ozone),
+    mean_PM2.5_AQI = mean(PM2.5)) %>%
 
+  na.omit(mean_Ozone_AQI)
+
+dim(summaries_2)
+```
+
+> Answer: 
+We can see that after using na.omit, the dimension of the summary data dropped from 182 rows to 101 rows. This is because that drop_na() function allows us to specify which columns to drop the missing values and it only removes empty rows in that specified column (i.e. O3 column in this case. However, the na.omit function removes row that contains missing value in any columns, and cannot selectively remove NA from specified columns, thus in this case, rows with NA in pm2.5 are also removed, resulting in data loss
