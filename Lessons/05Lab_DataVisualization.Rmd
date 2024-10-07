@@ -93,16 +93,19 @@ Say we want to plot the number of records each month in the Peter/Paul lakes dat
 
 ```{r Plot the number of records by month}
 #What kind of values are months?
-
+# integers
 
 #List unique values
 
 
 #Plot how many Lake observations occur each month
-
+PeterPaul.chem.nutrients %>% 
+  ggplot() + geom_bar(aes(x=month))
 
 #Convert month to a factor -- with 12 levels, labelled with month names
-
+factor(PeterPaul.chem.nutrients,
+       levels=1:12,
+       labels=month.abb)
 
 #Try again: Plot how many Lake observations occur each month
 
@@ -232,10 +235,14 @@ Exercise: build your own scatterplots of PeterPaul.chem.nutrients
 ```{r, fig.height = 3, fig.width = 4, warning = FALSE}
 
 # 1. 
-# Plot surface temperatures by day of  year. 
+# Plot surface temperatures by day of year. 
 # Color your points by year, and facet by lake in two rows.
 # Change the ylab name
-
+PeterPaul.chem.nutrients %>% 
+  filter(depth ==0) %>% 
+  ggplot(aes(x=daynum, y=temperature_C, color=year4)) +
+  geom_point()+
+  facet_wrap(vars(lakename), ncol = 2)
 
 #2. 
 # Plot temperature by date. Color your points by depth.
@@ -243,7 +250,11 @@ Exercise: build your own scatterplots of PeterPaul.chem.nutrients
 # Change the color palette to magma and play with direction (+- 1), which one makes more sense?
 # Change x axis to include marker/labels every 5 years
 
-
+PeterPaul.chem.nutrients %>% 
+  ggplot(aes(x=sampledate, y=temperature_C, color = depth)) +
+  geom_point() +
+  scale_color_viridis(option="magma") +
+  scale_x_date(data_breaks = "5 years", date_labels = "%Y")
 
 ```
 ## Plotting the relationship between two continuous variables: Scatterplot
