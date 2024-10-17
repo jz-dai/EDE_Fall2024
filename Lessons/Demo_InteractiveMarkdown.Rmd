@@ -4,7 +4,7 @@ author: Environmental Data Analytics | John Fay & Luana Lima
 date: "Fall 2024"
 output: pdf_document
 editor_options: 
-  chunk_output_type: console
+  chunk_output_type: inline
 ---
 
 ## Overview
@@ -83,7 +83,37 @@ Now tweak the above code so that the variable we plot (`tp_ug`) is specified as 
 To do this we need to convince R that the value we associate with the `y` aesthetic is a variable, not a column name. This is done by the odd convention of inserting the variable within the code `!!sym()`. The `!!` (pronounced "bang-bang") combined with `sym()` are "Tidy eval helpers" necessary because tidy-R does away with quotations. See more info [here](https://ggplot2.tidyverse.org/reference/tidyeval.html).
 
 ```{r Tweak plot to use variables, echo=FALSE, eval=FALSE, warning=FALSE}
+# Set values
+the_parameter <- 'tn_ug'
+start_year = 1990
+end_year = 2000
 
+#Construct the plot
+my_plot <- nutrient_data %>% 
+  filter(year4 > 1990 & year4 < 2016) %>% 
+  ggplot(aes(
+    x = sampledate,
+    y = tn_ug,
+    color = depth,
+    shape = lakename)) +
+  geom_point(alpha = 0.4, size = 2) +
+  scale_x_date(
+    date_breaks = "1 years",
+    date_labels = '%Y') +
+  scale_shape_manual(values = c(17, 15)) +
+  labs(
+    title = "Concentration over time, by depth and lake",
+    x = "Date", 
+    y = expression(Concentration ~ (mu*g / L)), 
+    shape = "Lake", 
+    fill = "Depth (m)") +
+  scale_color_viridis_c(
+    option = "mako", 
+    guide = guide_colorbar(reverse = T),
+    direction = -1)
+
+#View the plot
+my_plot
 ```
 
 
