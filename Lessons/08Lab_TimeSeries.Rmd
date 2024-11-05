@@ -157,7 +157,8 @@ ggplot(temp_df) +
   geom_line(aes(y = Observed, x = Date),  size = 0.25) +
   geom_line(aes(y = trend, x = Date), color = "red") +
   ylab(expression("Temperature / ℃"))
-
+  
+  
 ggplot(rainfall_df) +
   geom_line(aes(y = Observed, x = Date),  size = 0.25) +
   geom_line(aes(y = trend, x = Date), color = "red") +
