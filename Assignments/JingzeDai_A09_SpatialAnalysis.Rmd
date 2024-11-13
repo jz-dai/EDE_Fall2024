@@ -225,7 +225,7 @@ Now let's zoom into a particular county and examine the gages located there.
  * and the gage sites within 15 km of the county
 
 
-```{r spatial selection}
+```{r spatial selection, fig.width = 12, fig.height = 6}
 #22 Select the county
 lancaster_county <- NE_county.utm %>% 
   filter(NAME == "Lancaster")
@@ -265,6 +265,6 @@ ggplot() +
   
   labs(title = "Gage Sites in and around Lancaster County, Nebraska", 
        fill = "Areas", color = "Gage Sites") +
-  theme(legend.position = "right")
+  theme(legend.position = "bottom")
 
 ```
