@@ -25,10 +25,13 @@ This exercise accompanies the lessons in Environmental Data Analytics on data sc
 * Load the packages `tidyverse`, `rvest`, and any others you end up using.
 * Check your working directory
 
-```{r 1. Project Setup, message = FALSE}
+```{r 1. Project Setup, message=FALSE, warning=FALSE}
 #1 
-
-
+library(here)
+library(tidyverse)
+library(rvest)
+getwd()
+here()
 ```
 
 2. We will be scraping data from the NC DEQs Local Water Supply Planning website, specifically the Durham's 2023 Municipal Local Water Supply Plan (LWSP): 
@@ -40,7 +43,10 @@ Indicate this website as the as the URL to be scraped. (In other words, read the
 
 ```{r set.the.scraping.website}
 #2 
-
+url <- 
+  "https://www.ncwater.org/WUDC/app/LWSP/report.php?pwsid=03-32-010&year=2023"
+webpage <- read_html(url)
+webpage
 ```
 
 3. The data we want to collect are listed below:
@@ -59,8 +65,27 @@ In the code chunk below scrape these values, assigning them to four separate var
 
 ```{r scrape.the.data}
 #3 
+# creating tags
+water_system_tag <- 'div+ table tr:nth-child(1) td:nth-child(2)'
+pswid_tag <- 'td tr:nth-child(1) td:nth-child(5)'
+ownership_tag <- 'div+ table tr:nth-child(2) td:nth-child(4)'
+day_use_tag <- 'th~ td+ td'
 
+# data scraping
+water_system_name <- webpage %>% 
+  html_nodes(water_system_tag) %>% html_text()
+pswid <- webpage %>%
+  html_nodes(pswid_tag) %>%  html_text()
+ownership <- webpage %>% 
+  html_nodes(ownership_tag) %>% html_text()
+day_use <- webpage %>% 
+  html_nodes(day_use_tag) %>% html_text()
 
+# checking result
+water_system_name
+pswid
+ownership
+day_use
 ```
 
 
@@ -74,11 +99,26 @@ In the code chunk below scrape these values, assigning them to four separate var
 
 ```{r create.a.dataframe.from.scraped.data}
 #4 
+df_durham_LWSP <- data.frame("Month" = c(1,5,9,2,6,10,3,7,11,4,8,12),
+                             "Year" = rep(2023),
+                             "Maximum_Day_Use_mgd" = as.numeric(day_use)) %>% 
+  mutate(Water_system_name = !!water_system_name,
+         PSWid = !!pswid,
+         Ownership = !!ownership,
+         Date = ym(paste(Year,"-",Month)))
 
+# checking dataset
+glimpse(df_durham_LWSP)
 
 #5 
-
-
+ggplot(df_durham_LWSP,aes(x=Month,y=Maximum_Day_Use_mgd)) + 
+  geom_line() + 
+  geom_point() +
+  scale_x_continuous(breaks = 1:12) +
+  labs(title = paste("2023 Max Day Use of Water for",water_system_name),
+       subtitle = paste("PSWid =",pswid),
+       y="Max Day Use (mgd)",
+       x="Month")
 ```
 
 6. Note that the PWSID and the year appear in the web address for the page we scraped. Construct a function using your code above that can scrape data for any PWSID and year for which the NC DEQ has data, returning a dataframe.
@@ -86,24 +126,77 @@ In the code chunk below scrape these values, assigning them to four separate var
 
 ```{r construct.a.scraping.function}
 #6. 
+scrape_lwsp <- function(pwsid, year) {
+  target_url <- paste0("https://www.ncwater.org/WUDC/app/LWSP/report.php?pwsid=", 
+                     pwsid, "&year=", year)
+  target_webpage <- read_html(target_url)
 
+  water_system_name <- target_webpage %>%
+    html_nodes('div+ table tr:nth-child(1) td:nth-child(2)') %>% 
+    html_text()
+  
+  pswid <- target_webpage %>%
+    html_nodes('td tr:nth-child(1) td:nth-child(5)') %>%
+    html_text()
+  
+  ownership <- target_webpage %>%
+    html_nodes('div+ table tr:nth-child(2) td:nth-child(4)') %>%
+    html_text()
+  
+  day_use <- target_webpage %>%
+    html_nodes('th~ td+ td') %>% 
+    html_text() %>%
+    as.numeric() 
 
+  df.selected <- data.frame(
+    "Month" = c(1,5,9,2,6,10,3,7,11,4,8,12),
+    "Year" = rep(year),
+    "Maximum_Day_Use_mgd" = day_use
+  ) %>%
+    mutate(
+      Water_system_name = water_system_name,
+      PSWid = pswid,
+      Ownership = ownership,
+      Date = ym(paste(Year,"-",Month))
+    )
+  return(df.selected)
+}
 ```
 
 7. Use the function above to extract and plot max daily withdrawals for Durham (PWSID='03-32-010') for each month in 2015
 
 ```{r fetch.and.plot.Durham.2015.data}
 #7 
-
-
+df_durham_2015 <- scrape_lwsp("03-32-010", 2015)
+# checking result
+glimpse(df_durham_2015)
 ```
 
 8. Use the function above to extract data for Asheville (PWSID = 01-11-010) in 2015. Combine this data with the Durham data collected above and create a plot that compares Asheville's to Durham's water withdrawals.
 
 ```{r fetch.and.plot.Asheville.2015.data}
 #8 
+df_asheville_2015 <- scrape_lwsp("01-11-010", 2015)
+# checking result
+glimpse(df_asheville_2015)
 
+# combining dataset
+df_joined_2015 <- rbind(df_durham_2015, df_asheville_2015)
 
+# comparing water withdrawals
+ggplot(df_joined_2015, 
+       aes(x = Month, y = Maximum_Day_Use_mgd, 
+           color = Water_system_name, 
+           group = Water_system_name)) +
+  geom_line() +
+  geom_point() +
+  scale_x_continuous(breaks = 1:12) +
+  labs(
+    title = "2015 Maximum Day Use of Water",
+    subtitle = "Asheville vs Durham",
+    x = "Month",
+    y = "Max Day Use (mgd)",
+    color = "City")
 ```
 
 
@@ -113,10 +206,34 @@ In the code chunk below scrape these values, assigning them to four separate var
 
 ```{r fetch.and.plot.Asheville.multiyear.data }
 #9 
+years_of_interest = rep(2018:2022)
+area_of_interest = '01-11-010'
+dfs_desired <- lapply(X = years_of_interest,
+                  FUN = scrape_lwsp,
+                  pwsid = area_of_interest)
 
+dfs_combined <- bind_rows(dfs_desired)
 
+# checking results
+glimpse(dfs_combined)
+
+# creating a plot
+ggplot(dfs_combined, 
+       aes(x = Date, y = Maximum_Day_Use_mgd)) +
+  geom_line() +
+  geom_smooth(method="loess",se=FALSE) +
+  geom_point() +
+  scale_x_date(
+    date_breaks = "1 year", 
+    date_labels = "%Y"    
+  ) +
+  labs(
+    title = "Maximum Day Use of Water for Asheville",
+    subtitle = "Year 2018 thru 2022",
+    x = "Year",
+    y = "Max Day Use (mgd)")
 ```
 
 Question: Just by looking at the plot (i.e. not running statistics), does Asheville have a trend in water usage over time?
 > Answer:
->
+> It seems like there is a trend of increasing use of water overtime. The anomaly year is 2019, when the water usage that year is exceptionally high. If we are ignoring the monthly variation, we can observe the increased usage of water for the same month from year 2018 to 2022.
